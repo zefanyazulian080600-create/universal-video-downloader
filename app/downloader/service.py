@@ -77,14 +77,25 @@ class DownloaderService:
             "no_color": True,
             "socket_timeout": 30,
             "max_filesize": settings.max_download_bytes,
-            "retries": 3,
-            "fragment_retries": 3,
+            "retries": 5,
+            "fragment_retries": 5,
+            "geo_bypass": True,
+            "user_agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            ),
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "ios", "web_creator", "web_embedded", "web"],
+                    "player_skip": ["webpage", "configs"],
+                }
+            },
         }
 
         # If FFmpeg is available and enabled, configure stream merging & audio extraction
         if settings.enable_ffmpeg and self.ffmpeg.is_available():
             if self.ffmpeg.ffmpeg_path:
-                ydl_opts["ffmpeg_location"] = str(Path(self.ffmpeg.ffmpeg_path).parent)
+                ydl_opts["ffmpeg_location"] = str(self.ffmpeg.ffmpeg_path)
 
             if is_audio:
                 ydl_opts["postprocessors"] = [

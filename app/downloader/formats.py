@@ -116,7 +116,7 @@ def parse_yt_dlp_info(info: Dict[str, Any], original_url: str, platform_name: st
         resolution_label="best",
         ext="mp4",
         filesize=best_size,
-        yt_dlp_format_spec="bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best[ext=mp4]/best",
+        yt_dlp_format_spec="bestvideo+bestaudio/best",
     )
     options.append(best_option)
 
@@ -134,7 +134,7 @@ def parse_yt_dlp_info(info: Dict[str, Any], original_url: str, platform_name: st
             elif h <= 480:
                 label = f"🎬 {res_label} (SD)"
 
-            spec = f"bestvideo[height<={h}][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<={h}]+bestaudio/best[height<={h}]"
+            spec = f"bestvideo[height<={h}]+bestaudio/best[height<={h}]/bestvideo+bestaudio/best"
             options.append(
                 MediaFormatOption(
                     format_id=f"res_{h}",

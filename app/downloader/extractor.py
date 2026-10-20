@@ -43,8 +43,17 @@ class MetadataExtractor:
             "extract_flat": False,
             "socket_timeout": self.timeout,
             "no_color": True,
-            # Prevent geographic bypass spoofing or unsafe headers
-            "geo_bypass": False,
+            "geo_bypass": True,
+            "user_agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+            ),
+            "extractor_args": {
+                "youtube": {
+                    "player_client": ["android", "ios", "web_creator", "web_embedded", "web"],
+                    "player_skip": ["webpage", "configs"],
+                }
+            },
         }
 
         try:
