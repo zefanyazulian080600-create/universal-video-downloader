@@ -1,0 +1,103 @@
+name: Telegram Bot Cloud Automation
+
+on:
+  # Allows manual triggering with a "Run workflow" button in the GitHub Actions tab
+  workflow_dispatch:
+    inputs:
+      run_duration_minutes:
+        description: 'Durasi menjalankan bot dalam menit (Maksimal 330 menit / 5.5 jam per sesi)'
+        required: true
+        default: '300'
+  # Automatically triggers on a recurring schedule every 5 hours
+  schedule:
+    - cron: '0 */5 * * *'
+
+# Ensure ONLY ONE bot instance runs at a time to prevent Telegram Conflict error
+concurrency:
+  group: telegram-bot-runner
+  cancel-in-progress: true
+
+jobs:
+  run-bot:
+    name: Run LinkGrabber Bot
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    permissions:
+      actions: write
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install FFmpeg & System Utilities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg curl ca-certificates
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate GitHub Secrets
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          if [ -z "$BOT_TOKEN" ]; then
+            echo "::error::BOT_TOKEN secret belum disetel di GitHub Repository!"
+            echo "Silakan tambahkan BOT_TOKEN melalui menu:"
+            echo "GitHub Repo -> Settings -> Secrets and variables -> Actions -> New repository secret"
+            echo "Name: BOT_TOKEN"
+            echo "Value: (Token bot dari @BotFather)"
+            exit 1
+          fi
+          echo "BOT_TOKEN berhasil terdeteksi."
+
+      - name: Restore Database Cache
+        uses: actions/cache@v4
+        with:
+          path: data/
+          key: bot-db-${{ github.run_id }}
+          restore-keys: |
+            bot-db-
+
+      - name: Run Telegram Bot Engine
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          BOT_OWNER_ID: ${{ secrets.BOT_OWNER_ID || '0' }}
+          DATABASE_URL: "sqlite+aiosqlite:///./data/bot.db"
+          LOG_LEVEL: "INFO"
+          TEMP_DIR: "./downloads"
+          MAX_UPLOAD_MB: "50"
+          MAX_DOWNLOAD_MB: "200"
+          MAX_VIDEO_DURATION_SECONDS: "1800"
+          MAX_CONCURRENT_DOWNLOADS: "3"
+          MAX_JOBS_PER_USER: "2"
+          DOWNLOAD_TIMEOUT_SECONDS: "600"
+          METADATA_TIMEOUT_SECONDS: "30"
+          ENABLE_FFMPEG: "true"
+          ENABLE_COMPRESSION: "false"
+          USER_RATE_LIMIT: "10"
+        run: |
+          # Calculate duration in seconds (default 300 minutes = 18000s)
+          DURATION_MINUTES="${{ github.event.inputs.run_duration_minutes || '300' }}"
+          DURATION_SECONDS=$((DURATION_MINUTES * 60))
+          echo "Menjalankan LinkGrabber Bot selama $DURATION_MINUTES menit ($DURATION_SECONDS detik)..."
+          
+          # Run python bot with timeout and graceful SIGINT shutdown
+          timeout --preserve-status --signal=SIGINT "${DURATION_SECONDS}s" python -m app.main || true
+          echo "Sesi bot selesai secara tertib."
+
+      - name: Save Database State
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: data/
+          key: bot-db-${{ github.run_id }}

@@ -275,11 +275,27 @@ docker compose down
 
 ---
 
-### D. Deploy Otomatis di Cloud Menggunakan GitHub
+### D. Deploy & Otomasi di Cloud Menggunakan GitHub
 
-Anda dapat mengaktifkan bot ini di cloud 24/7 langsung dari repository GitHub ini melalui beberapa platform cloud populer:
+Anda dapat mengaktifkan bot ini di cloud langsung dari repository GitHub ini menggunakan beberapa metode:
 
-#### Opsi 1: Railway (Sangat Direkomendasikan & Paling Mudah)
+#### Opsi 0: Otomasi Langsung di GitHub Actions (100% Gratis & Otomatis di GitHub)
+Repository ini telah dilengkapi dengan workflow **`Telegram Bot Cloud Automation`** (`.github/workflows/bot-automation.yml`) yang dapat menjalankan bot langsung di runner GitHub Actions di cloud!
+
+**Langkah Aktivasi:**
+1. Di repository GitHub Anda, buka menu **Settings** -> **Secrets and variables** -> **Actions**.
+2. Klik tombol **New repository secret**:
+   - Name: `BOT_TOKEN`
+   - Secret: *(Token bot Telegram dari `@BotFather`)*
+3. *(Opsional)* Tambahkan secret `BOT_OWNER_ID` dengan ID Telegram Anda.
+4. Buka tab **Actions** di repository GitHub Anda:
+   - Pilih workflow **"Telegram Bot Cloud Automation"** di sidebar kiri.
+   - Klik tombol **"Run workflow"** -> klik **"Run workflow"**.
+5. Bot Anda akan langsung aktif berjalan di server cloud GitHub Actions! Workflow ini juga sudah disetel jadwal otomatis (*cron schedule*) untuk terus beroperasi secara periodik.
+
+---
+
+#### Opsi 1: Railway (Sangat Direkomendasikan untuk 24/7 Dedicated Worker)
 1. Buka [Railway.app](https://railway.app) dan login dengan akun GitHub Anda.
 2. Klik **"New Project"** -> **"Deploy from GitHub repo"**.
 3. Pilih repository ini (`universal-video-downloader` atau `linkgrabber-bot`).
