@@ -1,0 +1,27 @@
+# ==============================================================================
+# UNIVERSAL TELEGRAM VIDEO DOWNLOADER (LinkGrabber Bot) - DOCKER COMPOSE
+# ==============================================================================
+services:
+  linkgrabber-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: linkgrabber-bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      # Persistent SQLite database storage
+      - ./data:/app/data
+      # Temporary download storage
+      - ./downloads:/app/downloads
+      # Persistent structured logs
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+          cpus: "2.0"
+        reservations:
+          memory: 512M
+    stop_grace_period: 30s
